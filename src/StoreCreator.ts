@@ -62,22 +62,22 @@ class StoreCreator {
         state.pending[property] = true;
         state.error[property] = null;
       };
-      mutations[`${commitString}_${this.successSuffix}`] = (state, payload) => {
+      mutations[`${commitString}_${this.successSuffix}`] = (state, { response, actionParams }) => {
         state.pending[property] = false;
         state.error[property] = null;
 
         if (mutationSuccessFn) {
-          mutationSuccessFn(state, payload);
+          mutationSuccessFn(state, response, actionParams);
         } else {
-          state[property] = payload.data;
+          state[property] = response.data;
         }
       };
-      mutations[`${commitString}_${this.failureSuffix}`] = (state, payload) => {
+      mutations[`${commitString}_${this.failureSuffix}`] = (state, { error, actionParams }) => {
         state.pending[property] = false;
-        state.error[property] = payload;
+        state.error[property] = error;
 
         if (mutationFailureFn) {
-          mutationFailureFn(state, payload);
+          mutationFailureFn(state, error, actionParams);
         } else {
           state[property] = null;
         }
@@ -99,14 +99,14 @@ class StoreCreator {
           actionParams.params = {}
         if (!actionParams.data)
           actionParams.data = {}
- 
+
         commit(commitString);
         return requestFn(actionParams.params, actionParams.data)
           .then((response) => {
-            commit(`${commitString}_${this.successSuffix}`, response);
+            commit(`${commitString}_${this.successSuffix}`, { response, actionParams });
             return Promise.resolve(response);
           }, (error) => {
-            commit(`${commitString}_${this.failureSuffix}`, error);
+            commit(`${commitString}_${this.failureSuffix}`, { error, actionParams });
             return Promise.reject(error)
           });
       };

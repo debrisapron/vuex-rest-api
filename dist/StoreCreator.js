@@ -69,21 +69,23 @@ var StoreCreator = (function () {
                 state.pending[property] = true;
                 state.error[property] = null;
             };
-            mutations[commitString + "_" + _this.successSuffix] = function (state, payload) {
+            mutations[commitString + "_" + _this.successSuffix] = function (state, _a) {
+                var response = _a.response, actionParams = _a.actionParams;
                 state.pending[property] = false;
                 state.error[property] = null;
                 if (mutationSuccessFn) {
-                    mutationSuccessFn(state, payload);
+                    mutationSuccessFn(state, response, actionParams);
                 }
                 else {
-                    state[property] = payload.data;
+                    state[property] = response.data;
                 }
             };
-            mutations[commitString + "_" + _this.failureSuffix] = function (state, payload) {
+            mutations[commitString + "_" + _this.failureSuffix] = function (state, _a) {
+                var error = _a.error, actionParams = _a.actionParams;
                 state.pending[property] = false;
-                state.error[property] = payload;
+                state.error[property] = error;
                 if (mutationFailureFn) {
-                    mutationFailureFn(state, payload);
+                    mutationFailureFn(state, error, actionParams);
                 }
                 else {
                     state[property] = null;
@@ -111,10 +113,10 @@ var StoreCreator = (function () {
                         commit(commitString);
                         return [2 /*return*/, requestFn(actionParams.params, actionParams.data)
                                 .then(function (response) {
-                                commit(commitString + "_" + _this.successSuffix, response);
+                                commit(commitString + "_" + _this.successSuffix, { response: response, actionParams: actionParams });
                                 return Promise.resolve(response);
                             }, function (error) {
-                                commit(commitString + "_" + _this.failureSuffix, error);
+                                commit(commitString + "_" + _this.failureSuffix, { error: error, actionParams: actionParams });
                                 return Promise.reject(error);
                             })];
                     });
